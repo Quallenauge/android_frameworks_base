@@ -142,6 +142,7 @@ import com.android.server.pm.PackageManagerTracedLock;
 import com.android.server.pm.UserManagerInternal;
 import com.android.server.pm.UserManagerService;
 import com.android.server.pm.parsing.PackageInfoUtils;
+import com.android.server.pm.permission.Permission;
 import com.android.server.pm.parsing.pkg.AndroidPackageUtils;
 import com.android.server.pm.pkg.AndroidPackage;
 import com.android.server.pm.pkg.PackageState;
@@ -567,6 +568,13 @@ public class PermissionManagerServiceImpl implements PermissionManagerServiceInt
     @Nullable
     public PermissionInfo getPermissionInfo(@NonNull String permName,
             @PackageManager.PermissionInfoFlags int flags, @NonNull String opPackageName) {
+        if (permName.compareTo("com.oplus.permission.safe.LOG") == 0
+            || permName.compareTo("oplus.permission.OPLUS_COMPONENT_SAFE") == 0
+            || permName.compareTo("oplus.permission.OPPO_COMPONENT_SAFE") == 0){
+            Permission pm_oplus = new Permission(permName, "com.oneplus.camera", 0);
+            return pm_oplus.getPermissionInfo();
+        }
+
         final int callingUid = Binder.getCallingUid();
         if (mPackageManagerInt.getInstantAppPackageName(callingUid) != null) {
             return null;
