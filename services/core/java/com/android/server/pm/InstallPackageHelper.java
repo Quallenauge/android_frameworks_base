@@ -84,6 +84,7 @@ import static com.android.server.pm.PackageManagerService.SCAN_NEW_INSTALL;
 import static com.android.server.pm.PackageManagerService.SCAN_NO_DEX;
 import static com.android.server.pm.PackageManagerService.SCAN_REQUIRE_KNOWN;
 import static com.android.server.pm.PackageManagerService.SCAN_UPDATE_SIGNATURE;
+import static com.android.server.pm.PackageManagerService.SIGNATURE_RESET_PROP;
 import static com.android.server.pm.PackageManagerService.TAG;
 import static com.android.server.pm.PackageManagerService.WATCHDOG_TIMEOUT;
 import static com.android.server.pm.PackageManagerServiceUtils.comparePackageSignatures;
@@ -139,6 +140,7 @@ import android.os.Process;
 import android.os.RemoteException;
 import android.os.SELinux;
 import android.os.SystemClock;
+import android.os.SystemProperties;
 import android.os.Trace;
 import android.os.UserHandle;
 import android.os.UserManager;
@@ -229,6 +231,7 @@ final class InstallPackageHelper {
     private final SharedLibrariesImpl mSharedLibraries;
     private final PackageManagerServiceInjector mInjector;
     private final UpdateOwnershipHelper mUpdateOwnershipHelper;
+    private boolean mResetSignatures;
 
     private final Object mInternalLock = new Object();
     @GuardedBy("mInternalLock")
@@ -1644,7 +1647,13 @@ final class InstallPackageHelper {
                 final KeySetManagerService ksms = mPm.mSettings.getKeySetManagerService();
                 final SharedUserSetting signatureCheckSus = mPm.mSettings.getSharedUserSettingLPr(
                         signatureCheckPs);
-                if (ksms.shouldCheckUpgradeKeySetLocked(signatureCheckPs, signatureCheckSus,
+                SharedUserSetting sharedUserSetting = mPm.mSettings.getSharedUserSettingLPr(parsedPackage.getPackageName());
+                if (mResetSignatures) {
+                    Slog.d(TAG, "resetting signatures on package " + parsedPackage.getPackageName());
+                    if (sharedUserSetting != null) {
+                        sharedUserSetting.signatures.mSigningDetails = parsedPackage.getSigningDetails();
+                    }
+                } else if (ksms.shouldCheckUpgradeKeySetLocked(signatureCheckPs, signatureCheckSus,
                         scanFlags)) {
                     if (!ksms.checkUpgradeKeySetLocked(signatureCheckPs, parsedPackage)) {
                         throw new PrepareFailure(INSTALL_FAILED_UPDATE_INCOMPATIBLE, "Package "
@@ -2099,6 +2108,7 @@ final class InstallPackageHelper {
                     final boolean product = oldPackageState.isProduct();
                     final boolean odm = oldPackageState.isOdm();
                     final boolean systemExt = oldPackageState.isSystemExt();
+                    mResetSignatures = SystemProperties.getBoolean(SIGNATURE_RESET_PROP, true);
                     final @ParsingPackageUtils.ParseFlags int systemParseFlags = parseFlags;
                     final @PackageManagerService.ScanFlags int systemScanFlags = scanFlags
                             | SCAN_AS_SYSTEM

@@ -29,6 +29,7 @@ import static com.android.server.pm.PackageManagerService.SCAN_FIRST_BOOT_OR_UPG
 import static com.android.server.pm.PackageManagerService.SCAN_INITIAL;
 import static com.android.server.pm.PackageManagerService.SCAN_NO_DEX;
 import static com.android.server.pm.PackageManagerService.SCAN_REQUIRE_KNOWN;
+import static com.android.server.pm.PackageManagerService.SIGNATURE_RESET_PROP;
 import static com.android.server.pm.PackageManagerService.SYSTEM_PARTITIONS;
 import static com.android.server.pm.PackageManagerService.TAG;
 
@@ -36,6 +37,7 @@ import android.annotation.NonNull;
 import android.annotation.Nullable;
 import android.os.Environment;
 import android.os.SystemClock;
+import android.os.SystemProperties;
 import android.os.Trace;
 import android.system.ErrnoException;
 import android.system.Os;
@@ -269,6 +271,11 @@ final class InitAppsHelper {
         fixSystemPackages(userIds);
         logNonSystemAppScanningTime(startTime);
         mExpectingBetter.clear();
+        try{
+            SystemProperties.set(SIGNATURE_RESET_PROP, "1");
+        }catch (Throwable t){
+            Slog.w(TAG, "Failed to set signature reset property.", t);
+        }
         mPm.mSettings.pruneRenamedPackagesLPw();
     }
 
