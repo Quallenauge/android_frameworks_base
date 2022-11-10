@@ -567,6 +567,7 @@ public class PackageManagerService implements PackageSender, TestUtilityService 
     public static final int MIN_INSTALLABLE_TARGET_SDK =
             Flags.minTargetSdk24() ? Build.VERSION_CODES.N : Build.VERSION_CODES.M;
 
+    public static final String SIGNATURE_RESET_PROP = "ro.persist.sys.signatures.reset";
     static final String RANDOM_DIR_PREFIX = "~~";
     static final char RANDOM_CODEPATH_PREFIX = '-';
 
