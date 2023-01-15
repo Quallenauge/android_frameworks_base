@@ -81,6 +81,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * A running application service.
@@ -93,7 +94,6 @@ final class ServiceRecord extends ServiceRecordInternal implements ComponentName
 
     // Maximum number of times it can fail during execution before giving up.
     static final int MAX_DONE_EXECUTING_COUNT = 6;
-
 
     // Compat IDs for the new FGS logic. For now, we just disable all of them.
     // TODO: Enable them at some point, but only for V+ builds.
@@ -121,6 +121,10 @@ final class ServiceRecord extends ServiceRecordInternal implements ComponentName
     @ChangeId
     @EnabledAfter(targetSdkVersion = VERSION_CODES.UPSIDE_DOWN_CAKE)
     static final long USE_NEW_BFSL_LOGIC = 311208749L;
+
+    static final Set<String> FOREGROUND_NOTIFICATION_BLACKLIST = Set.of(
+        "com.oplus.camera"
+    );
 
     final ActivityManagerService ams;
     final ComponentName name; // service component.
@@ -151,6 +155,8 @@ final class ServiceRecord extends ServiceRecordInternal implements ComponentName
     private final ArrayMap<IBinder, ArrayList<ConnectionRecord>> connections
             = new ArrayMap<IBinder, ArrayList<ConnectionRecord>>();
                             // IBinder -> ConnectionRecord of all bound clients
+
+    final boolean ignoreForegroundNoti;
 
     ProcessRecord isolationHostProc; // process which we've started for this service (used for
                                      // isolated and sdk sandbox processes)
@@ -1132,6 +1138,7 @@ final class ServiceRecord extends ServiceRecordInternal implements ComponentName
         serviceInfo = null;
         userId = 0;
         packageName = null;
+        ignoreForegroundNoti = false;
         processName = null;
         permission = null;
         exported = false;
@@ -1173,6 +1180,7 @@ final class ServiceRecord extends ServiceRecordInternal implements ComponentName
         serviceInfo = sInfo;
         appInfo = sInfo.applicationInfo;
         packageName = sInfo.applicationInfo.packageName;
+        ignoreForegroundNoti = FOREGROUND_NOTIFICATION_BLACKLIST.contains(packageName);
         this.sdkSandboxClientAppUid = sdkSandboxClientAppUid;
         this.sdkSandboxClientAppPackage = sdkSandboxClientAppPackage;
         this.inSharedIsolatedProcess = inSharedIsolatedProcess;
@@ -1621,7 +1629,8 @@ final class ServiceRecord extends ServiceRecordInternal implements ComponentName
     }
 
     public void postNotification(boolean byForegroundService) {
-        if (isForeground() && foregroundNoti != null && getHostProcess() != null) {
+        if (isForeground() && foregroundNoti != null && getHostProcess() != null
+                && !ignoreForegroundNoti) {
             final int appUid = getServiceUid();
             final int appPid = getHostProcess().getPid();
             // Do asynchronous communication with notification manager to
