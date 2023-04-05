@@ -116,6 +116,17 @@
         <group gid="media" />
     </permission>
 
+    <!-- #ifdef COLOROS_EDIT -->
+    <!-- chaochun.shuai@Plf.Framework, 2017.08.15: add for launcher read data engineermode dir -->
+    <!-- Bin.Wang@Plf.Framework, 2018.05.18: add for allow app to read /data/oppo/common/sau_res -->
+    <permission name="oppo.permission.OPPO_COMPONENT_SAFE">
+        <group gid="media" />
+    </permission>
+    <permission name="oplus.permission.OPLUS_COMPONENT_SAFE">
+        <group gid="media" />
+    </permission>
+    <!-- #endif //COLOROS_EDIT -->
+
     <permission name="android.permission.USE_RESERVED_DISK">
         <group gid="reserved_disk" />
     </permission>
