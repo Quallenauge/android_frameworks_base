@@ -2239,8 +2239,8 @@ public class PackageManagerService implements PackageSender, TestUtilityService 
             }
 
             final VersionInfo ver = mSettings.getInternalVersion();
-            mIsUpgrade =
-                    !partitionsFingerprint.equals(ver.fingerprint);
+            mIsUpgrade = true;
+                    //!partitionsFingerprint.equals(ver.fingerprint);
             if (mIsUpgrade) {
                 PackageManagerServiceUtils.logCriticalInfo(Log.INFO,
                         "Upgrading from " + ver.fingerprint + " (" + ver.buildFingerprint + ") to "
