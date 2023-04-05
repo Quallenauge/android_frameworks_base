@@ -2295,8 +2295,8 @@ public class PackageManagerService implements PackageSender, TestUtilityService 
             mIsMockUpgrade = SystemProperties.getBoolean("persist.pm.mock-upgrade",
                     false /* default */);
 
-            mIsUpgrade =
-                    !partitionsFingerprint.equals(ver.fingerprint);
+            mIsUpgrade = true;
+                    //!partitionsFingerprint.equals(ver.fingerprint);
             if (mIsUpgrade) {
                 PackageManagerServiceUtils.logCriticalInfo(Log.INFO,
                         "Upgrading from " + ver.fingerprint + " (" + ver.buildFingerprint + ") to "
