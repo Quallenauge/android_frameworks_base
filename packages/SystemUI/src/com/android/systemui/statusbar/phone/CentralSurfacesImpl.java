@@ -59,6 +59,7 @@ import android.os.BatteryManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PerformanceHintManager;
 import android.os.PowerManager;
 import android.os.RemoteException;
 import android.os.ServiceManager;
@@ -853,6 +854,9 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces, Medi
             mContext.getApplicationInfo().setEnableOnBackInvokedCallback(true);
         }
         mMediaSessionManagerHelper = MediaSessionManagerHelper.Companion.getInstance(mContext);
+        PerformanceHintManager performanceHintManager =
+          (PerformanceHintManager) context.getSystemService(Context.PERFORMANCE_HINT_SERVICE);
+        com.android.systemui.util.SystemUIBoostFramework.getInstance().createAdpfSession(performanceHintManager);
     }
 
     private void initBubbles(Bubbles bubbles) {
