@@ -235,6 +235,7 @@ import com.android.systemui.util.WallpaperController;
 import com.android.systemui.util.concurrency.DelayableExecutor;
 import com.android.systemui.util.concurrency.MessageRouter;
 import com.android.systemui.util.kotlin.JavaAdapter;
+import com.android.systemui.util.SystemUIBoostFramework;
 import com.android.systemui.volume.VolumeComponent;
 import com.android.wm.shell.bubbles.Bubbles;
 import com.android.wm.shell.startingsurface.SplashscreenContentDrawer;
@@ -856,7 +857,7 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces, Medi
         mMediaSessionManagerHelper = MediaSessionManagerHelper.Companion.getInstance(mContext);
         PerformanceHintManager performanceHintManager =
           (PerformanceHintManager) context.getSystemService(Context.PERFORMANCE_HINT_SERVICE);
-        com.android.systemui.util.SystemUIBoostFramework.getInstance().createAdpfSession(performanceHintManager);
+        SystemUIBoostFramework.getInstance().createAdpfSession(performanceHintManager);
     }
 
     private void initBubbles(Bubbles bubbles) {
@@ -2731,18 +2732,16 @@ public class CentralSurfacesImpl implements CoreStartable, CentralSurfaces, Medi
         }
     };
     
-    private void doCpuStandbyOptimization(boolean enable) {
+    private void doCpuStandbyOptimization(boolean limit) {
         BatteryManager batteryManager = (BatteryManager) mContext.getSystemService(Context.BATTERY_SERVICE);
         boolean isChargingOrPlugged = batteryManager != null && 
                 (batteryManager.isCharging() || isPluggedIn());
 
         boolean isMediaPlaying = mMediaSessionManagerHelper.isMediaPlaying();
-        boolean cpuStandbyOptEnabled =
-             SystemProperties.get("persist.sys.cpu_standby_optimization_enabled", "1").equals("1");
 
-        if (enable && (!cpuStandbyOptEnabled || isMediaPlaying || isChargingOrPlugged)) return;
+        if (limit && (isMediaPlaying || isChargingOrPlugged)) return;
 
-        SystemProperties.set("persist.sys.power_mode_limit_cpus", enable ? "1" : "0");
+        SystemUIBoostFramework.getInstance().setLimitCpusForIdle(limit);
     }
 
     private boolean isPluggedIn() {

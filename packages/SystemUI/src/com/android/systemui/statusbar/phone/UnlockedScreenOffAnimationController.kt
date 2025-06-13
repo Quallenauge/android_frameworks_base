@@ -122,12 +122,14 @@ constructor(
                         if (lightRevealScrim.revealEffect !is CircleReveal) {
                             lightRevealScrim.revealAmount = 1f
                         }
+                        SystemUIBoostFramework.getInstance().requestUnLimitOtherProcessCPU(SystemUIBoostFramework.REQUEST_LIMIT_OTHER_PROCESS_CPU_WHEN_PLAY_SCREEN_OFF_ANIMATION)
                         SystemUIBoostFramework.getInstance().animationBoostOff(SystemUIBoostFramework.REQUEST_ANIMATION_BOOST_TYPE_LIGHT_REVEAL)
                     }
 
                     override fun onAnimationEnd(animation: Animator) {
                         lightRevealAnimationPlaying = false
                         interactionJankMonitor.end(CUJ_SCREEN_OFF)
+                        SystemUIBoostFramework.getInstance().requestUnLimitOtherProcessCPU(SystemUIBoostFramework.REQUEST_LIMIT_OTHER_PROCESS_CPU_WHEN_PLAY_SCREEN_OFF_ANIMATION)
                         SystemUIBoostFramework.getInstance().animationBoostOff(SystemUIBoostFramework.REQUEST_ANIMATION_BOOST_TYPE_LIGHT_REVEAL)
                     }
 
@@ -136,6 +138,7 @@ constructor(
                             notifShadeWindowControllerLazy.get().windowRootView,
                             CUJ_SCREEN_OFF
                         )
+                        SystemUIBoostFramework.getInstance().requestLimitOtherProcessCPU(SystemUIBoostFramework.REQUEST_LIMIT_OTHER_PROCESS_CPU_WHEN_PLAY_SCREEN_OFF_ANIMATION)  
                         SystemUIBoostFramework.getInstance().animationBoostOn(SystemUIBoostFramework.REQUEST_ANIMATION_BOOST_TYPE_LIGHT_REVEAL)
                     }
                 }

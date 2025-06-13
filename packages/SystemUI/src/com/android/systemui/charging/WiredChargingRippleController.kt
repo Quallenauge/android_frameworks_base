@@ -86,6 +86,7 @@ class WiredChargingRippleController @Inject constructor(
 
     @VisibleForTesting
     var rippleView: RippleView = RippleView(context, attrs = null).also { it.setupShader() }
+                com.android.systemui.util.SystemUIBoostFramework.getInstance().setLimitOtherAppCpu(false)
 
     init {
         pluggedIn = batteryController.isPluggedIn

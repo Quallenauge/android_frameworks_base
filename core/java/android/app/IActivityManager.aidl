@@ -1038,4 +1038,8 @@ interface IActivityManager {
      */
     @EnforcePermission("INTERACT_ACROSS_USERS_FULL")
     IBinder refreshIntentCreatorToken(in Intent intent);
+    void executeAdjustCpusetCpus(String path, String cpuset);
+    void adjustCpusetCpus(String path, String cpuset, long durationMillis);
+    void animationBoost(int pid);
+    void restoreThreadPriority(int pid, int originalPriority);
 }
