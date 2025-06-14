@@ -38,6 +38,7 @@ import com.android.systemui.statusbar.policy.BatteryController
 import com.android.systemui.statusbar.policy.ConfigurationController
 import com.android.systemui.surfaceeffects.ripple.RippleView
 import com.android.systemui.util.time.SystemClock
+import com.android.systemui.util.SystemUIBoostFramework
 import java.io.PrintWriter
 import javax.inject.Inject
 import kotlin.math.min
@@ -86,7 +87,6 @@ class WiredChargingRippleController @Inject constructor(
 
     @VisibleForTesting
     var rippleView: RippleView = RippleView(context, attrs = null).also { it.setupShader() }
-                com.android.systemui.util.SystemUIBoostFramework.getInstance().setLimitOtherAppCpu(false)
 
     init {
         pluggedIn = batteryController.isPluggedIn
@@ -159,9 +159,14 @@ class WiredChargingRippleController @Inject constructor(
         }
         windowLayoutParams.packageName = context.opPackageName
         rippleView.addOnAttachStateChangeListener(object : View.OnAttachStateChangeListener {
-            override fun onViewDetachedFromWindow(view: View) {}
+            override fun onViewDetachedFromWindow(view: View) {
+                SystemUIBoostFramework.getInstance().setLimitOtherAppCpu(false)
+                SystemUIBoostFramework.getInstance().unbind()
+                SystemUIBoostFramework.getInstance().animationBoostOff(SystemUIBoostFramework.REQUEST_ANIMATION_BOOST_TYPE_UNLOCK)
+            }
 
             override fun onViewAttachedToWindow(view: View) {
+                SystemUIBoostFramework.getInstance().animationBoostOn(SystemUIBoostFramework.REQUEST_ANIMATION_BOOST_TYPE_UNLOCK)
                 layoutRipple()
                 rippleView.startRipple(Runnable {
                     viewCaptureAwareWindowManager.removeView(rippleView)
