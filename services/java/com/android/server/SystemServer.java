@@ -886,6 +886,11 @@ public final class SystemServer implements Dumpable {
             Looper.prepareMainLooper();
             Looper.getMainLooper().setSlowLogThresholdMs(
                     SLOW_DISPATCH_THRESHOLD_MS, SLOW_DELIVERY_THRESHOLD_MS);
+            String[] profiles = {
+                "SystemServerCapacity",
+                "SystemServerPerformance"
+            };
+            android.os.Process.setTaskProfiles(android.os.Process.myTid(), profiles);
 
             SystemServiceRegistry.sEnableServiceNotFoundWtf = true;
 
