@@ -24,6 +24,11 @@
 #include <utils/misc.h>
 #include "jni.h"
 
+#include <binder/IPCThreadState.h>
+#include <utils/String8.h>
+#include <log/log.h>               // For Android logging
+#include <syscall.h>               // For syscall(SYS_gettid)
+
 #include <dirent.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -116,6 +121,18 @@ int AlarmImpl::set(int type, struct timespec *ts)
     memset(&spec, 0, sizeof(spec));
     memcpy(&spec.it_value, ts, sizeof(spec.it_value));
 
+    ALOGE("AlarmManagerService: Setting alarm (type %d) for %lu ns", type, ts->tv_nsec);
+    // Retrieve calling process information using Binder's IPCThreadState
+    IPCThreadState* ipc = IPCThreadState::self();
+    int callingPid = ipc->getCallingPid();     // Get calling process ID
+    int callingUid = ipc->getCallingUid();     // Get calling user ID
+    int callingTid = syscall(SYS_gettid);      // CORRECT: Current thread ID
+
+    // Log alarm setting details using Android logging system
+    // Note: getCallingTid() is a global function from Binder API
+    ALOGI("Alarm set by process: %d, thread: %d",
+        callingPid,
+        callingTid);
     return timerfd_settime(fds[type], TFD_TIMER_ABSTIME, &spec, NULL);
 }
 
@@ -153,6 +170,10 @@ int AlarmImpl::waitForAlarm()
             }
         } else {
             result |= (1 << alarm_idx);
+            if ((int)alarm_idx == CLOCK_REALTIME_ALARM ||
+                (int)alarm_idx == CLOCK_BOOTTIME_ALARM) {
+                ALOGE("AlarmManagerService: woke up from alarm %d", alarm_idx);
+            }
         }
     }
 
@@ -198,6 +219,8 @@ static jlong android_server_alarm_AlarmManagerService_init(JNIEnv*, jobject)
 
     for (size_t i = 0; i < fds.size(); i++) {
         fds[i] = timerfd_create(android_alarm_to_clockid[i], TFD_NONBLOCK);
+        ALOGE("%s: Created timerfd no=%d for clock %d at fd=%d",
+                __func__, (int)i, android_alarm_to_clockid[i], fds[i]);
         if (fds[i] < 0) {
             log_timerfd_create_error(android_alarm_to_clockid[i]);
             close(epollfd);
@@ -206,6 +229,7 @@ static jlong android_server_alarm_AlarmManagerService_init(JNIEnv*, jobject)
             }
             return 0;
         }
+        ALOGE("AlarmManagerService: fds[%d] points to fd %d", (int)i, fds[i]);
     }
 
     std::unique_ptr<AlarmImpl> alarm{new AlarmImpl(fds, epollfd)};

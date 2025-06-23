@@ -27,6 +27,8 @@ cc_library_shared {
         "libnativehelper",
         "liblog",
         "libbase",
+        "libbinder",
+        "libutils",
     ],
     visibility: [
         "//frameworks/base/apex:__subpackages__",
