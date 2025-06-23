@@ -1040,6 +1040,8 @@ interface IActivityManager {
     IBinder refreshIntentCreatorToken(in Intent intent);
     void executeAdjustCpusetCpus(String path, String cpuset);
     void adjustCpusetCpus(String path, String cpuset, long durationMillis);
-    void animationBoost(int pid);
-    void restoreThreadPriority(int pid, int originalPriority);
+    void animationBoost(int pid, boolean enabled);
+    void setThreadAffinity(int pid, int affinity);
+    void setPerformanceMode(boolean enabled);
+    boolean isBoostingAnimation();
 }
