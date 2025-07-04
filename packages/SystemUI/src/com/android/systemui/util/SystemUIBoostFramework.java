@@ -145,6 +145,7 @@ public class SystemUIBoostFramework {
     }
 
     private void executeSetAnimationBoost(long boost) {
+        Log.e(TAG, String.format("Call executeSetAnimationBoost %d", boost));
         try {
             final boolean enabled = boost == ANIMATION_BOOST_ON;
             int pid = Process.myPid();
@@ -155,6 +156,7 @@ public class SystemUIBoostFramework {
     }
 
     private void executeSetThreadAffinity(int affinity) {
+        Log.e(TAG, String.format("Call executeSetThreadAffinity %d", affinity));
         try {
             int pid = Process.myPid();
             ActivityManager.getService().setThreadAffinity(pid, affinity);
@@ -164,6 +166,7 @@ public class SystemUIBoostFramework {
     }
     
     public void setLimitCpusForIdle(boolean limit) {
+        Log.e(TAG, String.format("Call setLimitCpusForIdle %d", limit));
         if (limit) {
             // ui groups
             executeAdjustCpusetCpus(TOP_APP_GROUP, CPUS_PARAMS_UI_LIMIT);
@@ -194,6 +197,7 @@ public class SystemUIBoostFramework {
     }
 
     public void setLimitForegroundAppCpu(boolean limitForegroundAppCpu) {
+        Log.e(TAG, String.format("Call setLimitForegroundAppCpu %d", limitForegroundAppCpu));
         if (limitForegroundAppCpu != mLimitForegroundAppCpu) {
             if (limitForegroundAppCpu) {
                 executeAdjustCpusetCpus(TOP_APP_GROUP, CPUS_PARAMS_BIG_LIMIT);
@@ -204,7 +208,8 @@ public class SystemUIBoostFramework {
         }
     }
 
-    public void setLimitOtherProcessCpu(boolean limitOtherProcessCpu) {    
+    public void setLimitOtherProcessCpu(boolean limitOtherProcessCpu) {
+        Log.e(TAG, String.format("Call setLimitOtherProcessCpu %d", limitOtherProcessCpu));
         if (limitOtherProcessCpu != mLimitOtherProcessCpu) {
             if (limitOtherProcessCpu) {
                 executeAdjustCpusetCpus(CAMERA_DAEMON_GROUP, CPUS_PARAMS_BG_LIMIT);
@@ -264,6 +269,7 @@ public class SystemUIBoostFramework {
     }
 
     private void executeAdjustCpusetCpus(String path, String cpus) {
+        Log.e(TAG, String.format("Call executeAdjustCpusetCpus %s:%d", path, cpus));
         try {
             ActivityManager.getService().executeAdjustCpusetCpus(path, cpus);
         } catch (Exception e) {
@@ -271,6 +277,7 @@ public class SystemUIBoostFramework {
     }
     
     private void executePerformanceMode(boolean enabled) {
+        Log.e(TAG, String.format("Call executePerformanceMode %d", enabled));
         try {
             ActivityManager.getService().setPerformanceMode(enabled);
         } catch (Exception e) {
