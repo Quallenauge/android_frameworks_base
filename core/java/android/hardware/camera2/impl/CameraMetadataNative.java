@@ -76,6 +76,7 @@ import android.os.Build;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.os.ServiceSpecificException;
+import android.util.ArrayMap;
 import android.util.Log;
 import android.util.Range;
 import android.util.Size;
@@ -387,6 +388,9 @@ public class CameraMetadataNative implements Parcelable {
         if (mMetadataPtr == 0) {
             throw new OutOfMemoryError("Failed to allocate native CameraMetadata");
         }
+        if (other.mCompatValues != null) {
+            mCompatValues = new ArrayMap<>(other.mCompatValues);
+        }
         updateNativeAllocation();
     }
 
@@ -611,7 +615,17 @@ public class CameraMetadataNative implements Parcelable {
             if (key.hasTag()) {
                 tag = key.getTag();
             } else {
-                tag = nativeGetTagFromKeyLocal(mMetadataPtr, key.getName());
+                if (VendorTagCompat.isKnownMissing(key.getName())) {
+                    return getCompat(key);
+                }
+                try {
+                    tag = nativeGetTagFromKeyLocal(mMetadataPtr, key.getName());
+                } catch (IllegalArgumentException e) {
+                    if (!VendorTagCompat.isActive()) {
+                        throw e;
+                    }
+                    return getCompat(key);
+                }
                 key.cacheTag(tag);
             }
             values = readValues(tag);
@@ -635,6 +649,33 @@ public class CameraMetadataNative implements Parcelable {
         Marshaler<T> marshaler = getMarshalerForKey(key, nativeType);
         ByteBuffer buffer = ByteBuffer.wrap(values).order(ByteOrder.nativeOrder());
         return marshaler.unmarshal(buffer);
+    }
+
+    /** Must be called with the lock of this object held. */
+    @SuppressWarnings("unchecked")
+    private <T> T getCompat(Key<T> key) {
+        if (mCompatValues != null) {
+            Object value = mCompatValues.get(key.getName());
+            if (value != null && VendorTagCompat.isInstance(key.getType(), value)) {
+                return (T) value;
+            }
+        }
+        return VendorTagCompat.get(mCameraId, key.getName(), key.getType());
+    }
+
+    /** Must be called with the lock of this object held. */
+    private <T> void setCompat(Key<T> key, T value) {
+        VendorTagCompat.noteSet(key.getName());
+        if (value == null) {
+            if (mCompatValues != null) {
+                mCompatValues.remove(key.getName());
+            }
+            return;
+        }
+        if (mCompatValues == null) {
+            mCompatValues = new ArrayMap<>();
+        }
+        mCompatValues.put(key.getName(), value);
     }
 
     // Use Command pattern here to avoid lots of expensive if/equals checks in get for overridden
@@ -1997,7 +2038,19 @@ public class CameraMetadataNative implements Parcelable {
         if (key.hasTag()) {
             tag = key.getTag();
         } else {
-            tag = nativeGetTagFromKeyLocal(mMetadataPtr, key.getName());
+            if (VendorTagCompat.isKnownMissing(key.getName())) {
+                setCompat(key, value);
+                return;
+            }
+            try {
+                tag = nativeGetTagFromKeyLocal(mMetadataPtr, key.getName());
+            } catch (IllegalArgumentException e) {
+                if (!VendorTagCompat.isActive()) {
+                    throw e;
+                }
+                setCompat(key, value);
+                return;
+            }
             key.cacheTag(tag);
         }
         if (value == null) {
@@ -2226,6 +2279,12 @@ public class CameraMetadataNative implements Parcelable {
     }
 
     private int mCameraId = -1;
+    /**
+     * Values written to vendor tags the HAL does not define, kept so that the
+     * writer can read them back. Only used for packages with a
+     * {@link VendorTagCompat} file; never sent to the camera service.
+     */
+    private ArrayMap<String, Object> mCompatValues;
     private boolean mHasMandatoryConcurrentStreams = false;
     private Size mDisplaySize = new Size(0, 0);
     private long mBufferSize = 0;
@@ -2361,6 +2420,9 @@ public class CameraMetadataNative implements Parcelable {
     public synchronized void swap(CameraMetadataNative other) {
         nativeSwap(mMetadataPtr, other.mMetadataPtr);
         mCameraId = other.mCameraId;
+        ArrayMap<String, Object> compatValues = mCompatValues;
+        mCompatValues = other.mCompatValues;
+        other.mCompatValues = compatValues;
         mHasMandatoryConcurrentStreams = other.mHasMandatoryConcurrentStreams;
         mDisplaySize = other.mDisplaySize;
         mMultiResolutionStreamConfigurationMap = other.mMultiResolutionStreamConfigurationMap;
