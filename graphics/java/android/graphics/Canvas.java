@@ -154,6 +154,15 @@ public class Canvas extends BaseCanvas {
     }
 
     /**
+     * Per-canvas night mode of the vivo framework. Vivo apps call it
+     * unconditionally; it has no effect here.
+     *
+     * @hide
+     */
+    public void setNightMode(int mode) {
+    }
+
+    /**
      * Indicates whether this Canvas is drawing high contrast text.
      *
      * @see android.view.accessibility.AccessibilityManager#isHighContrastTextEnabled()

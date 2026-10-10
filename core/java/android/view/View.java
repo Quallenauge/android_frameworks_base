@@ -19885,6 +19885,15 @@ public class View implements Drawable.Callback, KeyEvent.Callback,
     }
 
     /**
+     * Per-view night mode of the vivo framework. Vivo apps call it
+     * unconditionally; it has no effect here.
+     *
+     * @hide
+     */
+    public void setNightMode(int mode) {
+    }
+
+    /**
      * Sets whether or not to allow force dark to apply to this view.
      *
      * Setting this to false will disable the auto-dark feature on everything this view
