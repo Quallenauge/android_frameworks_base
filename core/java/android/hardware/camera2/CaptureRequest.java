@@ -520,6 +520,16 @@ public final class CaptureRequest extends CameraMetadata<CaptureRequest.Key<?>>
     }
 
     /**
+     * Hands the values of this request to a result that is to return them;
+     * see {@link android.hardware.camera2.impl.VendorTagCompat}.
+     *
+     * @hide
+     */
+    public void copyCompatValuesTo(CameraMetadataNative result) {
+        result.copyCompatValuesOfRequest(mLogicalCameraSettings);
+    }
+
+    /**
      * Returns a copy of the underlying {@link CameraMetadataNative}.
      * @hide
      */

@@ -36,6 +36,9 @@ import java.nio.charset.StandardCharsets;
  * some.vendor.name = "text"
  * some.vendor.sizes = 4624, 3468, 1920, 1080
  * </pre>
+ * The value {@code <request>} in the section {@code [*]} makes a result return
+ * what its request set for that tag, as a HAL does that echoes its controls.
+ *
  * A value is converted to the type of the key that asks for it: numbers,
  * {@code true}/{@code false}, comma separated arrays, and quoted text for
  * {@code byte[]} and {@code String}.
@@ -46,6 +49,7 @@ public final class VendorTagCompat {
     private static final String TAG = "VendorTagCompat";
     private static final String CONFIG_DIR = "/system_ext/etc/camera_vendor_tag_compat/";
     private static final String ALL_CAMERAS = "*";
+    private static final String FROM_REQUEST = "<request>";
 
     private static final Object sLock = new Object();
     private static boolean sLoaded;
@@ -99,7 +103,7 @@ public final class VendorTagCompat {
             }
         }
         Object value = null;
-        if (raw != null) {
+        if (raw != null && !FROM_REQUEST.equals(raw)) {
             try {
                 value = convert(raw, type);
             } catch (RuntimeException e) {
@@ -109,6 +113,16 @@ public final class VendorTagCompat {
         logOnce("get " + name + " (" + type.getSimpleName() + ") camera " + cameraId
                 + " -> " + (value == null ? "null" : raw));
         return (T) value;
+    }
+
+    /** Whether a result returns the value of its request for this tag. */
+    public static boolean isFromRequest(String name) {
+        if (!sActive) {
+            return false;
+        }
+        synchronized (sLock) {
+            return FROM_REQUEST.equals(lookup(ALL_CAMERAS, name));
+        }
     }
 
     /** Notes a write to a tag that the HAL does not define. */

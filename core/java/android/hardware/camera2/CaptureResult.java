@@ -230,6 +230,7 @@ public class CaptureResult extends CameraMetadata<CaptureResult.Key<?>> {
         setNativeInstance(mResults);
         mCameraId = cameraId;
         mRequest = parent;
+        parent.copyCompatValuesTo(mResults);
         mSequenceId = extras.getRequestId();
         mFrameNumber = extras.getFrameNumber();
     }
@@ -257,6 +258,7 @@ public class CaptureResult extends CameraMetadata<CaptureResult.Key<?>> {
         setNativeInstance(mResults);
         mCameraId = cameraId;
         mRequest = parent;
+        parent.copyCompatValuesTo(mResults);
         mSequenceId = requestId;
         mFrameNumber = frameNumber;
     }

@@ -663,6 +663,43 @@ public class CameraMetadataNative implements Parcelable {
         return VendorTagCompat.get(mCameraId, key.getName(), key.getType());
     }
 
+    /**
+     * Takes over the values of the request for the tags a result is to return
+     * from its request; see {@link VendorTagCompat}.
+     *
+     * @hide
+     */
+    public void copyCompatValuesOfRequest(CameraMetadataNative request) {
+        if (!VendorTagCompat.isActive() || request == null) {
+            return;
+        }
+        ArrayMap<String, Object> echoed = null;
+        synchronized (request) {
+            if (request.mCompatValues == null) {
+                return;
+            }
+            for (int i = 0; i < request.mCompatValues.size(); i++) {
+                String name = request.mCompatValues.keyAt(i);
+                if (VendorTagCompat.isFromRequest(name)) {
+                    if (echoed == null) {
+                        echoed = new ArrayMap<>();
+                    }
+                    echoed.put(name, request.mCompatValues.valueAt(i));
+                }
+            }
+        }
+        if (echoed == null) {
+            return;
+        }
+        synchronized (this) {
+            if (mCompatValues == null) {
+                mCompatValues = echoed;
+            } else {
+                mCompatValues.putAll(echoed);
+            }
+        }
+    }
+
     /** Must be called with the lock of this object held. */
     private <T> void setCompat(Key<T> key, T value) {
         VendorTagCompat.noteSet(key.getName());
