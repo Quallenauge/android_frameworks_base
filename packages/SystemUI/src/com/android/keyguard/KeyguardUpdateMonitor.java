@@ -3112,7 +3112,6 @@ public class KeyguardUpdateMonitor implements TrustManager.TrustListener, CoreSt
                         || (mKeyguardOccluded && mIsDreaming)
                         || (mKeyguardOccluded && userDoesNotHaveTrust && mKeyguardShowing
                         && (mOccludingAppRequestingFp
-                        || isUdfps
                         || isAlternateBouncerShowing()
                         || mAllowFingerprintOnCurrentOccludingActivity
                 )
